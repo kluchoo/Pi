@@ -1,0 +1,38 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {},
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      "settings": {
+        "C_Cpp.vcFormat.newLine.beforeElse": false,
+        "C_Cpp.vcFormat.newLine.beforeOpenBrace.function": "sameLine",
+        "C_Cpp.vcFormat.newLine.beforeOpenBrace.type": "sameLine",
+        "C_Cpp.vcFormat.newLine.beforeOpenBrace.block": "sameLine",
+        "C_Cpp.vcFormat.indent.accessSpecifiers": true,
+        "C_Cpp.vcFormat.indent.caseContentsWhenBlock": true,
+        "C_Cpp.vcFormat.newLine.beforeCatch": false,
+        "C_Cpp.vcFormat.newLine.scopeBracesOnSeparateLines": true,
+        "C_Cpp.formatting": "vcFormat",
+        "C_Cpp.inlayHints.autoDeclarationTypes.showOnLeft": true,
+        "C_Cpp.inlayHints.parameterNames.enabled": true,
+        "C_Cpp.inlayHints.referenceOperator.enabled": true,
+        "C_Cpp.inlayHints.referenceOperator.showSpace": true,
+        "C_Cpp.inlayHints.autoDeclarationTypes.enabled": true,
+        "editor.formatOnSave": true
+      },
+      "extensions": [
+        "github.vscode-github-actions",
+        "akiramiyakoda.cppincludeguard",
+        "MS-CEINTL.vscode-language-pack-pl",
+        "matepek.vscode-catch2-test-adapter",
+        "aaron-bond.better-comments",
+        "ms-vscode.cpptools",
+        "GitHub.copilot-chat",
+        "usernamehw.errorlens"
+      ]
+    }
+  }
+}
