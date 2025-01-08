@@ -1,0 +1,65 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/dhoeric/features/act:1": {},
+    "ghcr.io/jsburckhardt/devcontainer-features/gitleaks:1": {}
+  },
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      "settings": {
+        "workbench.colorTheme": "Default Dark Modern",
+        "git.autofetch": true,
+        "git.autofetchPeriod": 60,
+        "C_Cpp.vcFormat.newLine.beforeElse": false,
+        "C_Cpp.vcFormat.newLine.beforeOpenBrace.function": "sameLine",
+        "C_Cpp.vcFormat.newLine.beforeOpenBrace.type": "sameLine",
+        "C_Cpp.vcFormat.newLine.beforeOpenBrace.block": "sameLine",
+        "C_Cpp.vcFormat.indent.accessSpecifiers": true,
+        "C_Cpp.vcFormat.indent.caseContentsWhenBlock": true,
+        "C_Cpp.vcFormat.newLine.beforeCatch": false,
+        "C_Cpp.vcFormat.newLine.scopeBracesOnSeparateLines": true,
+        "C_Cpp.formatting": "vcFormat",
+        "C_Cpp.inlayHints.autoDeclarationTypes.enabled": true,
+        "C_Cpp.inlayHints.autoDeclarationTypes.showOnLeft": true,
+        "C_Cpp.inlayHints.parameterNames.enabled": true,
+        "C_Cpp.inlayHints.parameterNames.hideLeadingUnderscores": true,
+        "C_Cpp.inlayHints.parameterNames.suppressWhenArgumentContainsName": true,
+        "C_Cpp.inlayHints.referenceOperator.enabled": true,
+        "C_Cpp.default.compilerPath": "/usr/bin/g++",
+        "C_Cpp.default.compilerArgs": [
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "*.cpp"
+        ],
+        "C_Cpp.autocompleteAddParentheses": true,
+        // The value to use in a configuration if `cppStandard` is either not specified or set to `${default}`.
+        "C_Cpp.default.cppStandard": "c++23",
+        "editor.formatOnSave": true
+      },
+      "extensions": [
+        "github.vscode-github-actions",
+        "akiramiyakoda.cppincludeguard",
+        "MS-CEINTL.vscode-language-pack-pl",
+        "matepek.vscode-catch2-test-adapter",
+        "aaron-bond.better-comments",
+        "ms-vscode.cpptools",
+        "GitHub.copilot-chat",
+        "usernamehw.errorlens"
+      ]
+    }
+  },
+  "containerEnv": {
+    "WORKSPACE_PATH": "/workspaces/${localWorkspaceFolderBasename}"
+  },
+  "postCreateCommand": {
+    "mkdir": "mkdir -p .vscode",
+    "tasks": "echo '{\"version\":\"2.0.0\",\"tasks\":[{\"type\":\"cppbuild\",\"label\":\"cpp-compile\",\"command\":\"/usr/bin/g++\",\"args\":[\"-fdiagnostics-color=always\",\"-g\",\"-o\",\"output.out\",\"-Wall\",\"-Wextra\",\"-Werror\",\"*.cpp\"],\"options\":{\"cwd\":\"${fileDirname}\"},\"problemMatcher\":[\"$gcc\"],\"group\":{\"kind\":\"build\",\"isDefault\":true},\"detail\":\"Ustawione przez Maciej Wójs\"}]}' | jq . > .vscode/tasks.json",
+    "launch": "echo '{\"version\":\"0.2.0\",\"configurations\":[{\"name\":\"(gdb) Launch\",\"type\":\"cppdbg\",\"request\":\"launch\",\"program\":\"${fileDirname}/output.out\",\"args\":[],\"stopAtEntry\":false,\"cwd\":\"${fileDirname}\",\"environment\":[],\"externalConsole\":false,\"MIMode\":\"gdb\",\"setupCommands\":[{\"description\":\"Włącz formatowanie kodu dla gdb\",\"text\":\"-enable-pretty-printing\",\"ignoreFailures\":true},{\"description\":\"Ustaw wariant dezasemblacji na Intel\",\"text\":\"-gdb-set disassembly-flavor intel\",\"ignoreFailures\":true}],\"preLaunchTask\":\"cpp-compile\"}]}' | jq . > .vscode/launch.json",
+    "precommit": "echo '#!/bin/sh\n# Pre-commit hook to run Gitleaks\n\necho \"Running Gitleaks scan...\"\n\n# Run Gitleaks and capture output\ngitleaks git --staged --verbose --exit-code 1\n\n# Capture the exit code\nEXIT_CODE=$?\n\n# Check if Gitleaks detected secrets\nif [ $EXIT_CODE -ne 0 ]; then\n    echo \"Gitleaks detected potential secrets! Aborting commit.\"\n    exit 1\nfi\n\necho \"No secrets detected. Proceeding with commit.\"\nexit 0\n' > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
+  }
+}
