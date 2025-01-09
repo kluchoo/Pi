@@ -4,6 +4,7 @@
 #include <chrono>
 #include <mutex>
 #include <iomanip>
+#include <fstream>
 
 std::mutex mtx;
 double global_sum = 0.0;
@@ -28,41 +29,59 @@ void integrate(double start, double end, int n) {
 }
 
 int main() {
-    int num_points, num_threads;
+    std::vector<long long> num_points_list = { 100000000, 1000000000, 3000000000 };
+    int max_threads = 50;
 
-    std::cout << "Podaj liczbe punktow: ";
-    std::cin >> num_points;
-    std::cout << "Podaj liczbe watkow: ";
-    std::cin >> num_threads;
-
-    std::vector<std::thread> threads;
-    global_sum = 0.0;
-
-    // Pomiar czasu - start
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    // Tworzenie wątków
-    int points_per_thread = num_points / num_threads;
-    double interval_per_thread = 1.0 / num_threads;
-
-    for (int i = 0; i < num_threads; i++) {
-        double start = i * interval_per_thread;
-        double end = (i + 1) * interval_per_thread;
-        threads.emplace_back(integrate, start, end, points_per_thread);
+    std::ofstream outfile("results.csv", std::ios::app);
+    if (!outfile) {
+        std::cerr << "Nie mozna otworzyc pliku do zapisu!" << std::endl;
+        return 1;
     }
 
-    // Czekanie na zakończenie wszystkich wątków
-    for (auto& thread : threads) {
-        thread.join();
+    // Tworzenie nagłówka pliku CSV, jeśli plik jest pusty
+    std::ifstream infile("results.csv");
+    if (infile.peek() == std::ifstream::traits_type::eof()) {
+        outfile << "Liczba punktow,Liczba watkow,Przyblizenie liczby PI,Czas wykonania (sekundy)" << std::endl;
+    }
+    infile.close();
+
+    for (unsigned int num_points : num_points_list) {
+        for (int num_threads = 1; num_threads <= max_threads; num_threads++) {
+            std::vector<std::thread> threads;
+            global_sum = 0.0;
+
+            // Pomiar czasu - start
+            auto start_time = std::chrono::high_resolution_clock::now();
+
+            // Tworzenie wątków
+            unsigned int points_per_thread = num_points / num_threads;
+            double interval_per_thread = 1.0 / num_threads;
+
+            for (int i = 0; i < num_threads; i++) {
+                double start = i * interval_per_thread;
+                double end = (i + 1) * interval_per_thread;
+                threads.emplace_back(integrate, start, end, points_per_thread);
+            }
+
+            // Czekanie na zakończenie wszystkich wątków
+            for (auto& thread : threads) {
+                thread.join();
+            }
+
+            // Pomiar czasu - koniec
+            auto end_time = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+
+            std::cout << std::fixed << std::setprecision(10);
+            std::cout << "Liczba punktow: " << num_points << ", Liczba watkow: " << num_threads << std::endl;
+            std::cout << "Przyblizenie liczby PI: " << global_sum << std::endl;
+            std::cout << "Czas wykonania: " << duration.count() / 1000000.0 << " sekund" << std::endl;
+
+            outfile << num_points << "," << num_threads << "," << global_sum << "," << duration.count() / 1000000.0 << std::endl;
+        }
     }
 
-    // Pomiar czasu - koniec
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-
-    std::cout << std::fixed << std::setprecision(10);
-    std::cout << "Przyblizenie liczby PI: " << global_sum << std::endl;
-    std::cout << "Czas wykonania: " << duration.count() / 1000000.0 << " sekund" << std::endl;
+    outfile.close();
 
     return 0;
 }
